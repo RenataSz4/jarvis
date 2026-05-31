@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg: #04070b;
+  --reactor: #3ad9ff;
+  --reactor-deep: #0a84c4;
+  --reactor-glow: #6fe9ff;
+  --gold: #ffc24b;
+  --amber: #ff9d2e;
+  --text-dim: #5a7387;
+  --intensity: 0;   
+  --hue-shift: 0deg;  
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: #cfe9f5;
+  font-family: 'Share Tech Mono', monospace;
+  overflow: hidden;
+}
+
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 45%, rgba(58,217,255,0.06), transparent 70%),
+    radial-gradient(circle at 50% 120%, rgba(255,194,75,0.05), transparent 55%);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(58,217,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58,217,255,0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(circle at 50% 45%, black, transparent 80%);
+  mask-image: radial-gradient(circle at 50% 45%, black, transparent 80%);
+}
+
+.stage {
+  position: relative; width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.corner { position: fixed; width: 54px; height: 54px; border: 2px solid var(--gold); opacity: 0.55; }
+.corner.tl { top: 22px; left: 22px; border-right: 0; border-bottom: 0; }
+.corner.tr { top: 22px; right: 22px; border-left: 0; border-bottom: 0; }
+.corner.bl { bottom: 22px; left: 22px; border-right: 0; border-top: 0; }
+.corner.br { bottom: 22px; right: 22px; border-left: 0; border-top: 0; }
+
+.hud-top { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); text-align: center; letter-spacing: 0.55em; }
+.hud-top .title {
+  font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 1.35rem;
+  color: var(--reactor); text-shadow: 0 0 18px rgba(58,217,255,0.5);
+}
+.hud-top .sub { margin-top: 8px; font-size: 0.62rem; letter-spacing: 0.4em; color: var(--text-dim); }
+
+.reactor-wrap { position: relative; width: 420px; height: 420px; display: grid; place-items: center; }
+#viz { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.arc-reactor {
+  position: relative; width: 200px; height: 200px; display: grid; place-items: center;
+  filter: hue-rotate(var(--hue-shift));
+  transform: scale(calc(1 + var(--intensity) * 0.07)); 
+  transition: transform 0.08s linear;
+}
+
+.ring { position: absolute; border-radius: 50%; border: 2px solid rgba(58,217,255,0.35); }
+.ring.outer {
+  width: 200px; height: 200px; border-style: dashed; border-width: 1px;
+  border-color: rgba(255,194,75,0.4); animation: spin 16s linear infinite;
+}
+.ring.mid {
+  width: 158px; height: 158px;
+  border-top-color: var(--reactor-glow); border-right-color: transparent;
+  border-bottom-color: var(--reactor); border-left-color: transparent;
+  animation: spin 7s linear infinite reverse;
+}
+.ring.inner { width: 128px; height: 128px; border-color: rgba(58,217,255,0.25); box-shadow: inset 0 0 22px rgba(58,217,255,0.25); }
+
+.core {
+  position: relative; width: 104px; height: 104px; border-radius: 50%;
+  display: grid; place-items: center;
+  box-shadow: 0 0 30px rgba(58,217,255,0.4);
+  background:
+    conic-gradient(from 0deg,
+      var(--reactor-deep) 0deg 28deg, transparent 28deg 30deg,
+      var(--reactor-deep) 30deg 58deg, transparent 58deg 60deg,
+      var(--reactor-deep) 60deg 88deg, transparent 88deg 90deg,
+      var(--reactor-deep) 90deg 118deg, transparent 118deg 120deg,
+      var(--reactor-deep) 120deg 148deg, transparent 148deg 150deg,
+      var(--reactor-deep) 150deg 178deg, transparent 178deg 180deg,
+      var(--reactor-deep) 180deg 208deg, transparent 208deg 210deg,
+      var(--reactor-deep) 210deg 238deg, transparent 238deg 240deg,
+      var(--reactor-deep) 240deg 268deg, transparent 268deg 270deg,
+      var(--reactor-deep) 270deg 298deg, transparent 298deg 300deg,
+      var(--reactor-deep) 300deg 328deg, transparent 328deg 330deg,
+      var(--reactor-deep) 330deg 358deg, transparent 358deg 360deg);
+}
+.core::before {
+  content: ''; position: absolute; width: 78px; height: 78px; border-radius: 50%;
+  border: 3px solid var(--reactor);
+  box-shadow: 0 0 16px var(--reactor), inset 0 0 16px rgba(58,217,255,0.6);
+}
+.core-center {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: radial-gradient(circle, #ffffff, var(--reactor-glow) 40%, var(--reactor) 75%);
+  box-shadow:
+    0 0 calc(20px + var(--intensity) * 50px) var(--reactor-glow),
+    0 0 calc(40px + var(--intensity) * 90px) var(--reactor);
+  transition: box-shadow 0.08s linear;
+}
+
+.state { margin-top: 46px; text-align: center; }
+.state .badge {
+  display: inline-block; font-family: 'Chakra Petch', sans-serif; font-weight: 600;
+  font-size: 0.8rem; letter-spacing: 0.35em; padding: 7px 20px;
+  border: 1px solid var(--reactor); color: var(--reactor); border-radius: 2px;
+  text-shadow: 0 0 10px rgba(58,217,255,0.5);
+}
+.state.listening .badge { border-color: var(--amber); color: var(--amber); text-shadow: 0 0 10px rgba(255,157,46,0.5); }
+.state .line { margin-top: 16px; min-height: 1.4em; color: #9fc4d8; font-size: 0.9rem; max-width: 520px; }
+
+.controls { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; width: min(560px, 86vw); }
+.controls input {
+  flex: 1; background: rgba(58,217,255,0.05); border: 1px solid rgba(58,217,255,0.3);
+  color: #dff3fb; padding: 13px 16px; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; outline: none;
+}
+.controls input:focus { border-color: var(--reactor); box-shadow: 0 0 14px rgba(58,217,255,0.3); }
+.controls button {
+  background: linear-gradient(180deg, var(--reactor), var(--reactor-deep)); border: 0; color: #04070b; cursor: pointer;
+  font-family: 'Chakra Petch', sans-serif; font-weight: 700; letter-spacing: 0.15em; padding: 0 24px;
+  box-shadow: 0 0 18px rgba(58,217,255,0.4); transition: transform 0.1s;
+}
+.controls button:hover { transform: translateY(-1px); }
+.controls button:active { transform: translateY(1px); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
