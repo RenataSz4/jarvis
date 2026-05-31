@@ -1,4 +1,4 @@
-const endpoint = '/api/tts';
+const endpoint = '/tts';
 
 export class JarvisVoice {
   constructor(opts = {}) {
