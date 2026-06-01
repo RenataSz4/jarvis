@@ -49,10 +49,12 @@ export class JarvisVoice {
   async speak(text) {
     if (!text || !text.trim()) return;
 
+    const spoken = text.replace(/\bJ\.?A\.?R\.?V\.?I\.?S\.?/gi, 'Jarvis');
+
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text: spoken }),
     });
     if (!res.ok) throw new Error(`TTS backend ${res.status}`);
 

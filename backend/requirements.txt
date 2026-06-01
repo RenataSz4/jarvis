@@ -3,3 +3,6 @@ pydantic
 python-dotenv
 anthropic
 uvicorn
+httpx
+faster-whisper
+python-multipart
