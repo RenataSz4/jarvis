@@ -1,6 +1,3 @@
-// Orchestrator: wires the microphone (ears) -> Claude (/ask) -> voice (tts).
-// This is the "conductor" that ties the two empty files together.
-
 import { JarvisEars } from './stt.js';
 import { JarvisVoice } from './tts.js';
 
@@ -10,20 +7,17 @@ const badge  = document.getElementById('badge');
 const line   = document.getElementById('line');
 const state  = document.getElementById('state');
 
-let busy = false; // true while thinking/speaking, so we ignore new input
+let busy = false; // true while speaking
 let conversing = false;
 
-// --- UI helpers -----------------------------------------------------------
 function setState(label, message, listening = false) {
   badge.textContent = label;
   if (message != null) line.textContent = message;
-  state.classList.toggle('listening', listening); // turns the visualizer orange
+  state.classList.toggle('listening', listening);
 }
 
 const PROMPT = 'Press the mic and talk to Jarvis.';
 
-// Return to standby. By default we KEEP the last message on screen (so Jarvis'
-// reply stays visible); pass a message to overwrite the line (e.g. the prompt).
 function idle(message) {
   busy = false;
   micBtn.disabled = false;
@@ -38,19 +32,16 @@ function listenAgain() {
   if (conversing) setTimeout(() => ears.start(), 400);
 }
 
-// --- The brain + voice ----------------------------------------------------
 const voice = new JarvisVoice();
 
-// Play sound-effect cues from /sfx. Each cue is {name, delay}, where delay is
-// milliseconds to wait after the PREVIOUS cue — so the model controls spacing
-// (0 = layered, larger = a beat between sounds). Clips are independent.
+// play sound-effect cues from /sfx.
 function playSfx(cues) {
   if (!cues || !cues.length) return;
   let offset = 0;
   for (const cue of cues) {
     if (!cue || !cue.name) continue;
-    offset += cue.delay || 0;                      // cumulative timeline
-    const fx = new Audio(`/sfx/${cue.name}.mp3`);   // create now to preload
+    offset += cue.delay || 0; 
+    const fx = new Audio(`/sfx/${cue.name}.mp3`);
     setTimeout(() => fx.play().catch(() => {}), offset);
   }
 }
@@ -85,13 +76,11 @@ async function handleQuery(text) {
   try {
     await voice.speak(reply); // resolves when the audio finishes playing
   } catch {
-    // TTS failed (e.g. voice tier / no key) — keep the reply visible, just note it.
     line.textContent = `${reply}\n\n(voice unavailable)`;
   }
   listenAgain();
 }
 
-// --- The ears -------------------------------------------------------------
 const ears = new JarvisEars({
   onStart:  () => setState('LISTENING', 'Listening...', true),
   onResult: (text) => handleQuery(text),
@@ -99,15 +88,13 @@ const ears = new JarvisEars({
     if (code === 'no-speech' && conversing) { listenAgain(); return; }
     conversing = false;
     setState('ERROR', message, false);
-    setTimeout(() => idle(PROMPT), 2500); // option (a): show the message, then return to standby
+    setTimeout(() => idle(PROMPT), 2500);
   },
   onEnd: () => {
-    // If recognition ended without a result (and we are not processing), reset.
     if (!busy) state.classList.remove('listening');
   },
 });
 
-// --- Inputs ---------------------------------------------------------------
 micBtn.addEventListener('click', () => {
   if (conversing) {
     conversing = false;
@@ -121,7 +108,7 @@ micBtn.addEventListener('click', () => {
 });
 
 input.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') handleQuery(input.value); // typed fallback, great for testing
+  if (e.key === 'Enter') handleQuery(input.value);
 });
 
 idle(PROMPT);

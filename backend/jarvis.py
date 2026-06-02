@@ -87,7 +87,7 @@ SYSTEM_PROMPT = (
     "literal bracketed tag, exactly like [sfx:repulsor] or [sfx:beeping:600]."
 )
 
-# Append the measured clip lengths so JARVIS can time cues to avoid overlap.
+# append info about the sfx so jarvis has context
 SYSTEM_PROMPT += sfx_timing_note(measure_sfx())
 
 messages = []
@@ -103,7 +103,7 @@ def add_assistant_message(messages, text):
 def chat(messages):
     response = client.messages.create(
         model=MODEL,
-        max_tokens=200,  # safety cap; the prompt enforces brevity, this bounds runaways
+        max_tokens=200,
         messages=messages,
         system=SYSTEM_PROMPT
     )

@@ -33,7 +33,7 @@ export class JarvisVoice {
       this.analyser.getByteFrequencyData(data);
       let total = 0;
       for (let i = 0; i < data.length; i++) total += data[i];
-      const level = Math.min(1, (total / data.length) / 140); // normalize to 0..1
+      const level = Math.min(1, (total / data.length) / 140); // normalize to 0-1
       this.onLevel(level);
       this.frame = requestAnimationFrame(loop);
     };

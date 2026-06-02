@@ -28,9 +28,11 @@ class AskRequest(BaseModel):
 class TTSRequest(BaseModel):
     text: str
 
+# for cool ironman sfx
 SFX_NAMES = {"powerup", "shutdown", "repulsor", "suit_land", "beeping"}
 SFX_TAG = re.compile(r"\[sfx:(\w+)(?::(\d+))?\]", re.IGNORECASE)
 
+# whisper functions taken from documentation
 def split_sfx(text):
     """Pull every [sfx:name] / [sfx:name:ms] cue out of the reply.
 
@@ -106,21 +108,22 @@ async def transcribe(file: UploadFile = File(...)):
     if not audio:
         raise HTTPException(400, "Empty audio")
 
-    # faster-whisper reads from a path, so buffer the upload to a temp file.
+    # we need to write the file to disk so whisper can read
     with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
         tmp.write(audio)
         path = tmp.name
 
     try:
-        # vad_filter trims silence/noise before transcribing -> cleaner text.
+        # vad_filter helps with noise
         segments, _ = get_whisper().transcribe(path, language=WHISPER_LANG, vad_filter=True)
         text = "".join(seg.text for seg in segments).strip()
     finally:
         os.remove(path)
 
     return {"text": text}
+# end whisper
 
-
+# serve for demo
 SFX_DIR = os.path.join(os.path.dirname(__file__), "sfx")
 app.mount("/sfx", StaticFiles(directory=SFX_DIR), name="sfx")
 

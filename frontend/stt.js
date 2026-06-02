@@ -1,36 +1,26 @@
-// Speech-to-text via local Whisper. The browser RECORDS audio (MediaRecorder)
-// and ships it to the backend /transcribe route, which runs Whisper.
-//
-// MediaRecorder has no built-in end-of-speech detection, so we add our own
-// voice-activity detection (VAD): a Web Audio AnalyserNode measures loudness
-// and auto-stops after a stretch of silence. That keeps app.js's start() ->
-// speak -> onResult flow (and the continuous-conversation loop) working.
-
 const TRANSCRIBE_URL = '/transcribe';
 
-// Friendly, in-character messages for requirement #4 (error handling).
-// Keys are the `name` values getUserMedia rejects with.
 const MIC_ERRORS = {
-  NotAllowedError:      'Microphone access was denied, sir.',
-  SecurityError:        'Microphone access was denied, sir.',
-  NotFoundError:        'No microphone is available, sir.',
+  NotAllowedError: 'Microphone access was denied, sir.',
+  SecurityError: 'Microphone access was denied, sir.',
+  NotFoundError: 'No microphone is available, sir.',
   DevicesNotFoundError: 'No microphone is available, sir.',
-  NotReadableError:     'The microphone is in use by something else, sir.',
-  TrackStartError:      'The microphone is in use by something else, sir.',
+  NotReadableError: 'The microphone is in use by something else, sir.',
+  TrackStartError: 'The microphone is in use by something else, sir.',
 };
 
-// --- VAD tuning (adjust to your mic / room) -------------------------------
-const SILENCE_RMS  = 0.015; // loudness below this counts as silence (0..1)
-const SILENCE_MS   = 1100;  // stop after this much trailing silence
-const MAX_WAIT_MS  = 6000;  // if no speech is ever detected, give up (no-speech)
-const MAX_RECORD_MS = 15000; // hard cap on a single utterance
+// VAD filter
+const SILENCE_RMS = 0.015;
+const SILENCE_MS = 1100; 
+const MAX_WAIT_MS = 6000;
+const MAX_RECORD_MS = 15000;
 
 export class JarvisEars {
   constructor(opts = {}) {
-    this.onStart      = opts.onStart      || (() => {});
-    this.onResult     = opts.onResult     || (() => {});
-    this.onError      = opts.onError      || (() => {});
-    this.onEnd        = opts.onEnd        || (() => {});
+    this.onStart = opts.onStart || (() => {});
+    this.onResult = opts.onResult || (() => {});
+    this.onError = opts.onError || (() => {});
+    this.onEnd = opts.onEnd || (() => {});
     this.onProcessing = opts.onProcessing || (() => {});
 
     this.supported = !!(navigator.mediaDevices && window.MediaRecorder);
@@ -72,7 +62,7 @@ export class JarvisEars {
     this.watchSilence(stream);
   }
 
-  // Auto-stop the recording once the speaker goes quiet (or never speaks).
+  // stop the recording once we go quiet
   watchSilence(stream) {
     this.ac = new (window.AudioContext || window.webkitAudioContext)();
     const source = this.ac.createMediaStreamSource(stream);
@@ -110,7 +100,7 @@ export class JarvisEars {
     this.raf = requestAnimationFrame(tick);
   }
 
-  // Internal stop from the VAD -> transcribe what we captured.
+  // stop to transcribe
   autoStop() {
     if (!this.recording) return;
     this.recording = false;
@@ -118,7 +108,7 @@ export class JarvisEars {
     this.recorder.stop();
   }
 
-  // Manual stop from the UI -> cancel without transcribing.
+  // manual stop
   stop() {
     if (!this.recording) return;
     this.aborted = true;
@@ -132,7 +122,7 @@ export class JarvisEars {
     if (this.ac) { this.ac.close(); this.ac = null; }
     this.stream.getTracks().forEach((t) => t.stop());
     this.onEnd();
-    if (this.aborted) return; // user cancelled: don't transcribe
+    if (this.aborted) return; // cancelled
 
     const blob = new Blob(this.chunks, { type: this.recorder.mimeType || 'audio/webm' });
     if (!blob.size) {
@@ -150,7 +140,7 @@ export class JarvisEars {
 
       const text = (await res.json()).text;
       if (text && text.trim()) this.onResult(text.trim());
-      else this.onError('no-speech', "I didn't hear anything, sir."); // silence / noise
+      else this.onError('no-speech', "I didn't hear anything, sir."); // silence or noise
     } catch {
       this.onError('network', 'I could not make out that audio, sir.');
     }
